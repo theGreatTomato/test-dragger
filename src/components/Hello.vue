@@ -1,22 +1,9 @@
 <template>
   <div class="fluid container">
-    <div class="form-group form-group-lg panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">Sortable control</h3>
-      </div>
-      <div class="panel-body">
-        <div class="checkbox">
-          <label><input type="checkbox" v-model="editable">Enable drag and drop</label>
-        </div>
-        <button type="button" class="btn btn-default" @click="orderList">Sort by original order</button>
-      </div>
-    </div>
-
-    <div class="col-md-3">
-      <draggable class="list-group" tag="ul" v-model="list" v-bind="dragOptions" :move="onMove" @start="isDragging=true" @end="isDragging=false">
+    <div class="col-md-3 border-style" v-for="(item, i) in list1" :key="i">
+      <draggable class="list-group" tag="ul" :list="item"  :group="{name:'abc',pull:'clone',put:false}" :move="onMoveLeft" @start="isDragging=true" @end="isDragging=false">
         <transition-group type="transition" :name="'flip-list'">
-          <li class="list-group-item" v-for="element in list" :key="element.order">
-            <i :class="element.fixed? 'fa fa-anchor' : 'glyphicon glyphicon-pushpin'" @click=" element.fixed=! element.fixed" aria-hidden="true"></i>
+          <li class="list-group-item" v-for="(element, index) in item" :key="index + '1'">
             {{element.name}}
             <span class="badge">{{element.order}}</span>
           </li>
@@ -24,11 +11,10 @@
       </draggable>
     </div>
 
-    <div class="col-md-3">
-      <draggable element="span" v-model="list2" v-bind="dragOptions" :move="onMove">
+    <div class="col-md-3 border-style">
+      <draggable element="span" v-model="list2" :group="{name:'abc',pull:'clone',put:true}" :move="onMove" :animation='200'>
         <transition-group name="no" class="list-group" tag="ul">
-          <li class="list-group-item" v-for="element in list2" :key="element.order">
-            <i :class="element.fixed? 'fa fa-anchor' : 'glyphicon glyphicon-pushpin'" @click=" element.fixed=! element.fixed" aria-hidden="true"></i>
+          <li class="list-group-item" v-for="(element, i) in list2" :key="i">
             {{element.name}}
             <span class="badge">{{element.order}}</span>
           </li>
@@ -65,9 +51,15 @@ export default {
   },
   data() {
     return {
-      list: message.map((name, index) => {
-        return { name, order: index + 1, fixed: false };
-      }),
+      dragOptions: {
+          animation: 0,
+          group: "description",
+          disabled: false,
+          ghostClass: "ghost"
+      },
+      oriList: message.map((name, index) => {
+          return { name, order: index + 1, fixed: false };
+        }),
       list2: [],
       editable: true,
       isDragging: false,
@@ -75,10 +67,8 @@ export default {
     };
   },
   methods: {
-    orderList() {
-      this.list = this.list.sort((one, two) => {
-        return one.order - two.order;
-      });
+    onMoveLeft({ relatedContext, draggedContext }) {
+      console.log(this.list1)
     },
     onMove({ relatedContext, draggedContext }) {
       const relatedElement = relatedContext.element;
@@ -89,16 +79,13 @@ export default {
     }
   },
   computed: {
-    dragOptions() {
-      return {
-        animation: 0,
-        group: "description",
-        disabled: !this.editable,
-        ghostClass: "ghost"
-      };
+    list1() {
+      return message.map((name, index) => {
+        return [{ name, order: index + 1, fixed: false }];
+      })
     },
     listString() {
-      return JSON.stringify(this.list, null, 2);
+      return JSON.stringify(this.list1, null, 2);
     },
     list2String() {
       return JSON.stringify(this.list2, null, 2);
@@ -106,13 +93,12 @@ export default {
   },
   watch: {
     isDragging(newValue) {
-      if (newValue) {
-        this.delayedDragging = true;
-        return;
-      }
-      this.$nextTick(() => {
-        this.delayedDragging = false;
-      });
+    },
+    list1: {
+      handler: function () {
+        console.log('asd')
+      },
+      deep: true
     }
   }
 };
@@ -134,6 +120,7 @@ export default {
 
 .list-group {
   min-height: 20px;
+  height: 350px;
 }
 
 .list-group-item {
@@ -142,5 +129,12 @@ export default {
 
 .list-group-item i {
   cursor: pointer;
+}
+
+.border-style {
+  border: 1px solid #ddd;
+  padding: 5px;
+  margin: 5px;
+  height: 350px;
 }
 </style>
